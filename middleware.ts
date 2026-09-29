@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
   const isPrivate = pathname.startsWith('/dashboard') || pathname.startsWith('/admin')
 
   if (!user && isPrivate) return redirect('/login')
-  if (user && (pathname === '/' || pathname === '/login')) return redirect('/dashboard')
+  if (user && (pathname === '/' || pathname === '/login' || pathname === '/cadastro')) return redirect('/dashboard')
 
   if (user && pathname.startsWith('/admin')) {
     const { data } = await supabase

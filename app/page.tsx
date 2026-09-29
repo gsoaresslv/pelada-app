@@ -9,9 +9,14 @@ export default function Landing() {
       <p className="text-muted-foreground">
         Avalie os jogadores do seu grupo e sorteie os times com base nas notas.
       </p>
-      <Button asChild size="lg">
-        <Link href="/login">Entrar</Link>
-      </Button>
+      <div className="flex gap-3">
+        <Button asChild size="lg">
+          <Link href="/login">Entrar</Link>
+        </Button>
+        <Button asChild size="lg" variant="outline">
+          <Link href="/cadastro">Criar conta</Link>
+        </Button>
+      </div>
     </main>
   )
 }

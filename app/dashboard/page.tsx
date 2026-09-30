@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { ClipboardList, Shuffle, Users } from 'lucide-react'
+import { ClipboardList, Search, Shuffle, UserPlus, Users } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { PlayerCard } from '@/components/player-card'
+import { Button } from '@/components/ui/button'
 import type { Player } from '@/lib/teams'
 
 type GroupRow = { id: string; name: string; role: string }
@@ -36,6 +37,7 @@ export default async function DashboardPage() {
   })
 
   const ROLE_LABEL: Record<string, string> = { owner: 'Dono', admin: 'Admin', member: 'Membro' }
+  const isAdminSomewhere = groups.some((g) => g.role === 'owner' || g.role === 'admin')
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 pb-10 pt-4">
@@ -66,26 +68,61 @@ export default async function DashboardPage() {
 
       {/* 3. Minhas peladas + 4. Empty state */}
       <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">Minhas peladas</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-muted-foreground">Minhas peladas</h2>
+          {isAdminSomewhere && (
+            <Link
+              href="/dashboard/grupos/solicitacoes"
+              className="text-xs font-medium text-foreground underline underline-offset-4"
+            >
+              Solicitações pendentes
+            </Link>
+          )}
+        </div>
 
         {groups.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center">
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-6 text-center">
             <Users className="h-8 w-8 text-muted-foreground" />
             <p className="text-sm font-medium">Você ainda não faz parte de nenhuma pelada</p>
             <p className="text-sm text-muted-foreground">
-              Peça para o organizador do seu grupo te adicionar, ou crie uma nova pelada assim que
-              essa opção estiver disponível no app.
+              Crie a sua própria pelada ou peça para entrar em uma já existente.
             </p>
+            <div className="mt-1 flex w-full gap-2">
+              <Button asChild className="flex-1 gap-1.5" size="sm">
+                <Link href="/dashboard/grupos/novo">
+                  <UserPlus className="h-4 w-4" /> Criar um Grupo
+                </Link>
+              </Button>
+              <Button asChild className="flex-1 gap-1.5" size="sm" variant="outline">
+                <Link href="/dashboard/grupos/buscar">
+                  <Search className="h-4 w-4" /> Buscar uma Pelada
+                </Link>
+              </Button>
+            </div>
           </div>
         ) : (
-          <ul className="flex flex-col gap-2">
-            {groups.map((g) => (
-              <li key={g.id} className="flex items-center justify-between rounded-xl border bg-card p-3 text-sm">
-                <span className="font-medium">{g.name}</span>
-                <span className="text-xs text-muted-foreground">{ROLE_LABEL[g.role] ?? g.role}</span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="flex flex-col gap-2">
+              {groups.map((g) => (
+                <li key={g.id} className="flex items-center justify-between rounded-xl border bg-card p-3 text-sm">
+                  <span className="font-medium">{g.name}</span>
+                  <span className="text-xs text-muted-foreground">{ROLE_LABEL[g.role] ?? g.role}</span>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-1 flex gap-2">
+              <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                <Link href="/dashboard/grupos/novo">
+                  <UserPlus className="h-4 w-4" /> Criar outro grupo
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="ghost" className="gap-1.5">
+                <Link href="/dashboard/grupos/buscar">
+                  <Search className="h-4 w-4" /> Buscar mais peladas
+                </Link>
+              </Button>
+            </div>
+          </>
         )}
       </section>
     </div>

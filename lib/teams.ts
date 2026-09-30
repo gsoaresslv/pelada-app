@@ -19,6 +19,25 @@ export interface Draw {
   reserve: Player[] // Time N+1
 }
 
+const POSITION_WEIGHTS: Record<Position, { attack: number; defense: number; physical: number }> = {
+  GOL: { attack: 0.05, defense: 0.85, physical: 0.10 },
+  DEF: { attack: 0.20, defense: 0.50, physical: 0.30 },
+  MEI: { attack: 0.40, defense: 0.40, physical: 0.20 },
+  ATA: { attack: 0.50, defense: 0.20, physical: 0.30 },
+}
+
+/** Espelha a fórmula e os pesos de rating_real/rating_display da view player_stats (supabase/schema.sql). */
+export function computeRatings(
+  avgAttack: number,
+  avgDefense: number,
+  avgPhysical: number,
+  position: Position
+): { rating_real: number; rating_display: number } {
+  const w = POSITION_WEIGHTS[position]
+  const real = (avgAttack * w.attack + avgDefense * w.defense + avgPhysical * w.physical) * 10
+  return { rating_real: real, rating_display: 25 + 0.75 * real }
+}
+
 export const MIN_PER_TEAM = 2
 const POSITIONS: Position[] = ['GOL', 'DEF', 'MEI', 'ATA']
 

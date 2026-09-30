@@ -1,7 +1,7 @@
 import { getUserGroups } from '@/lib/groups'
-import { TeamSplit } from '@/components/team-split'
+import { RatePlayer } from '@/components/rate-player'
 
-export default async function SorteioPage() {
+export default async function AvaliarPage() {
   const groups = await getUserGroups()
-  return <TeamSplit groups={groups} />
+  return <RatePlayer groups={groups} />
 }

@@ -30,6 +30,7 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
   const [query, setQuery] = useState('')
   const [ratedId, setRatedId] = useState('')
   const [scores, setScores] = useState<Scores>(BASE_SCORES)
+  const [lastRatedId, setLastRatedId] = useState('')
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null)
   const [loadingPlayers, startLoad] = useTransition()
   const [saving, startSave] = useTransition()
@@ -46,6 +47,7 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
   function pickGroup(id: string) {
     setGroupId(id)
     setRatedId('')
+    setLastRatedId('')
     setQuery('')
     setMessage(null)
     setPlayers([])
@@ -82,8 +84,9 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
         return
       }
       setMessage({ type: 'success', text: `Avaliação de ${nickname} enviada!` })
-      // Some da lista local para não avaliar o mesmo jogador duas vezes na mesma sessão.
-      setPlayers((prev) => prev.filter((p) => p.id !== ratedId))
+      setLastRatedId(ratedId)
+      // Fica na lista de propósito: o PRD permite reavaliar o mesmo jogador depois.
+      // Cada envio cria um novo registro imutável em "ratings" — não substitui o anterior.
       setRatedId('')
       setScores(BASE_SCORES)
     })
@@ -159,7 +162,12 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
                   )}
                 >
                   <span>{p.nickname}</span>
-                  <span className="text-xs text-muted-foreground">{p.position}</span>
+                  <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                    {p.id === lastRatedId && p.id !== ratedId && (
+                      <span className="text-primary">Avaliado ✓</span>
+                    )}
+                    {p.position}
+                  </span>
                 </button>
               </li>
             ))}

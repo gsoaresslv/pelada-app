@@ -1,5 +1,6 @@
 // app/dashboard/page.tsx
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   ClipboardList,
   Pencil,
@@ -21,6 +22,10 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
 
   const [{ data: statsRow }, { data: memberRows }] = await Promise.all([
     supabase.from("player_stats").select("*").eq("id", user!.id).single(),

@@ -4,6 +4,20 @@ import { createClient } from "@/lib/supabase/server";
 import { GroupDetail } from "@/components/group-detail";
 import type { Player } from "@/lib/teams";
 
+type PlayerStatsRow = {
+  id: string;
+  full_name: string;
+  nickname: string;
+  avatar_url: string | null;
+  position: Player["position"];
+  avg_attack: number | string;
+  avg_defense: number | string;
+  avg_physical: number | string;
+  ratings_count: number | string;
+  rating_real: number | string;
+  rating_display: number | string;
+};
+
 export default async function GroupDetailPage({
   params,
 }: {
@@ -47,10 +61,12 @@ export default async function GroupDetailPage({
 
   const { data: statsRows } = memberIds.length
     ? await supabase.from("player_stats").select("*").in("id", memberIds)
-    : { data: [] as Record<string, unknown>[] };
+    : { data: [] };
 
-  const members = (statsRows ?? [])
-    .map((row: any) => ({
+  const typedStatsRows = (statsRows ?? []) as unknown as PlayerStatsRow[];
+
+  const members = typedStatsRows
+    .map((row) => ({
       player: {
         ...row,
         avg_attack: Number(row.avg_attack),

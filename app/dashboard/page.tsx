@@ -13,7 +13,6 @@ import { PlayerCard } from "@/components/player-card";
 import { Button } from "@/components/ui/button";
 import { TopBar } from "@/components/top-bar";
 import type { Player } from "@/lib/teams";
-import { redirect } from "next/navigation";
 
 type GroupRow = { id: string; name: string; role: string };
 
@@ -22,10 +21,6 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/login");
-  }
 
   const [{ data: statsRow }, { data: memberRows }] = await Promise.all([
     supabase.from("player_stats").select("*").eq("id", user!.id).single(),
@@ -62,9 +57,6 @@ export default async function DashboardPage() {
     admin: "Admin",
     member: "Membro",
   };
-  const isAdminSomewhere = groups.some(
-    (g) => g.role === "owner" || g.role === "admin",
-  );
 
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6 px-4 pb-10 pt-4">
@@ -107,19 +99,9 @@ export default async function DashboardPage() {
 
       {/* 3. Minhas peladas + 4. Empty state */}
       <section className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-muted-foreground">
-            Minhas peladas
-          </h2>
-          {isAdminSomewhere && (
-            <Link
-              href="/dashboard/grupos/solicitacoes"
-              className="text-xs font-medium text-primary underline underline-offset-4"
-            >
-              Solicitações pendentes
-            </Link>
-          )}
-        </div>
+        <h2 className="text-sm font-semibold text-muted-foreground">
+          Minhas peladas
+        </h2>
 
         {groups.length === 0 ? (
           <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed p-6 text-center">
@@ -152,14 +134,16 @@ export default async function DashboardPage() {
           <>
             <ul className="flex flex-col gap-2">
               {groups.map((g) => (
-                <li
-                  key={g.id}
-                  className="flex items-center justify-between rounded-xl border bg-card p-3 text-sm shadow-sm"
-                >
-                  <span className="font-medium">{g.name}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {ROLE_LABEL[g.role] ?? g.role}
-                  </span>
+                <li key={g.id}>
+                  <Link
+                    href={`/dashboard/grupos/${g.id}`}
+                    className="flex items-center justify-between rounded-xl border bg-card p-3 text-sm shadow-sm transition-all duration-200 hover:scale-[1.01] hover:border-primary/40 hover:shadow-md active:scale-[0.99]"
+                  >
+                    <span className="font-medium">{g.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {ROLE_LABEL[g.role] ?? g.role}
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>

@@ -13,6 +13,7 @@ import { PlayerCard } from "@/components/player-card";
 import { Button } from "@/components/ui/button";
 import { TopBar } from "@/components/top-bar";
 import type { Player } from "@/lib/teams";
+import { redirect } from "next/navigation";
 
 type GroupRow = { id: string; name: string; role: string };
 
@@ -21,6 +22,10 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect("/login");
+  }
 
   const [{ data: statsRow }, { data: memberRows }] = await Promise.all([
     supabase.from("player_stats").select("*").eq("id", user!.id).single(),

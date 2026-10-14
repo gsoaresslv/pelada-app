@@ -26,8 +26,8 @@ const FIELD_CRITERIA = [
   { key: "fin", label: "Finalização", hint: "Precisão de chute, faro de gol" },
   { key: "pas", label: "Passe", hint: "Armação, visão de jogo, assistência" },
   { key: "def", label: "Defesa", hint: "Desarme, marcação, posicionamento" },
-  { key: "rit", label: "Ritmo", hint: "Velocidade, arranque, agilidade" },
-  { key: "fis", label: "Físico", hint: "Resistência, força, jogo de corpo" },
+  { key: "rit", label: "Ritmo", hint: "Fôlego, arranque, corrida" },
+  { key: "fis", label: "Físico", hint: "Proteção de bola, força, jogo de corpo" },
 ];
 
 const GK_CRITERIA = [
@@ -117,7 +117,6 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
   function pickPlayer(id: string) {
     setRatedId(id);
     const player = players.find((p) => p.id === id);
-    // Se tiver nota anterior no banco, carrega para os sliders. Se não, volta pro base 5.0
     if (player?.previous_rating) {
       setScores({ ...BASE_SCORES, ...player.previous_rating });
     } else {
@@ -133,7 +132,6 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
     fd.set("rated_id", ratedId);
     fd.set("position", ratedPlayer.position);
 
-    // Anexa as notas do estado baseadas na posição atual
     const activeCriteria =
       ratedPlayer.position === "GOL" ? GK_CRITERIA : FIELD_CRITERIA;
     activeCriteria.forEach((c) => fd.set(c.key, String(scores[c.key])));
@@ -149,7 +147,6 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
         text: `Avaliação de ${ratedPlayer.nickname} salva!`,
       });
 
-      // Atualiza a lista localmente para mostrar o badge imediatamente
       setPlayers((prev) =>
         prev.map((p) =>
           p.id === ratedId ? { ...p, previous_rating: scores } : p,
@@ -215,7 +212,7 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
           />
         </div>
         {groupId && (
-          <ul className="flex max-h-52 flex-col gap-1 overflow-y-auto rounded-lg border p-1">
+          <ul className="flex min-h-[200px] max-h-[calc(100dvh-18rem)] flex-col gap-1 overflow-y-scroll rounded-lg border p-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:w-1.5 hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/50">
             {loadingPlayers && (
               <li className="p-2 text-sm text-muted-foreground">Carregando…</li>
             )}
@@ -259,7 +256,6 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
           </p>
           {(ratedPlayer.position === "GOL" ? GK_CRITERIA : FIELD_CRITERIA).map(
             ({ key, label, hint }) => {
-              // Garante que o slider não quebre se o banco devolver null para a coluna específica
               const val = scores[key] ?? 5;
               return (
                 <div key={key} className="flex flex-col gap-1">

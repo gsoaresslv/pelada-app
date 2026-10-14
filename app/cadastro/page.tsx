@@ -6,10 +6,12 @@ import { Input } from "@/components/ui/input";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const POSITIONS = [
-  { value: "GOL", label: "Goleiro" },
-  { value: "DEF", label: "Defensor" },
-  { value: "MEI", label: "Meio-campo" },
   { value: "ATA", label: "Atacante" },
+  { value: "MEI", label: "Meio-campo" },
+  { value: "VOL", label: "Volante" },
+  { value: "ALA", label: "Ala" },
+  { value: "ZAG", label: "Zagueiro" },
+  { value: "GOL", label: "Goleiro" },
 ];
 
 export default async function CadastroPage({

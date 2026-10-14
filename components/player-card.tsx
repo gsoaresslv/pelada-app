@@ -22,7 +22,14 @@ const initials = (name: string) =>
 function StatBar({ label, value }: { label: string; value: number }) {
   const v = Math.min(10, Math.max(0, value));
   return (
-    <div className="flex items-center gap-2" role="meter" aria-label={label}>
+    <div
+      className="flex items-center gap-2"
+      role="meter"
+      aria-label={label}
+      aria-valuenow={v}
+      aria-valuemin={0}
+      aria-valuemax={10}
+    >
       <span className="w-6 text-[10px] font-medium text-muted-foreground">
         {label}
       </span>

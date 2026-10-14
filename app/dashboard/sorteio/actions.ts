@@ -1,3 +1,4 @@
+//dashboard/sorteio/actions.ts
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
@@ -18,14 +19,24 @@ export async function getGroupPlayers(groupId: string): Promise<Player[]> {
   if (statsError) throw new Error(statsError.message)
 
   return (data ?? [])
-    .map((r) => ({
-      ...r,
-      avg_attack: Number(r.avg_attack),
-      avg_defense: Number(r.avg_defense),
-      avg_physical: Number(r.avg_physical),
-      ratings_count: Number(r.ratings_count),
-      rating_real: Number(r.rating_real),
-      rating_display: Number(r.rating_display),
-    }) as Player)
-    .sort((a, b) => a.nickname.localeCompare(b.nickname, 'pt-BR'))
+    .map(
+      (r) =>
+        ({
+          ...r,
+          avg_fin: Number(r.avg_fin),
+          avg_pas: Number(r.avg_pas),
+          avg_def: Number(r.avg_def),
+          avg_rit: Number(r.avg_rit),
+          avg_fis: Number(r.avg_fis),
+          avg_ela: Number(r.avg_ela),
+          avg_pos: Number(r.avg_pos),
+          avg_man: Number(r.avg_man),
+          avg_agi: Number(r.avg_agi),
+          avg_clu: Number(r.avg_clu),
+          ratings_count: Number(r.ratings_count),
+          rating_real: Number(r.rating_real),
+          rating_display: Number(r.rating_display),
+        }) as Player,
+    )
+    .sort((a, b) => a.nickname.localeCompare(b.nickname, "pt-BR"));
 }

@@ -10,9 +10,16 @@ type PlayerStatsRow = {
   nickname: string;
   avatar_url: string | null;
   position: Player["position"];
-  avg_attack: number | string;
-  avg_defense: number | string;
-  avg_physical: number | string;
+  avg_fin: number | string;
+  avg_pas: number | string;
+  avg_def: number | string;
+  avg_rit: number | string;
+  avg_fis: number | string;
+  avg_ela: number | string;
+  avg_pos: number | string;
+  avg_man: number | string;
+  avg_agi: number | string;
+  avg_clu: number | string;
   ratings_count: number | string;
   rating_real: number | string;
   rating_display: number | string;
@@ -69,9 +76,16 @@ export default async function GroupDetailPage({
     .map((row) => ({
       player: {
         ...row,
-        avg_attack: Number(row.avg_attack),
-        avg_defense: Number(row.avg_defense),
-        avg_physical: Number(row.avg_physical),
+        avg_fin: Number(row.avg_fin),
+        avg_pas: Number(row.avg_pas),
+        avg_def: Number(row.avg_def),
+        avg_rit: Number(row.avg_rit),
+        avg_fis: Number(row.avg_fis),
+        avg_ela: Number(row.avg_ela),
+        avg_pos: Number(row.avg_pos),
+        avg_man: Number(row.avg_man),
+        avg_agi: Number(row.avg_agi),
+        avg_clu: Number(row.avg_clu),
         ratings_count: Number(row.ratings_count),
         rating_real: Number(row.rating_real),
         rating_display: Number(row.rating_display),

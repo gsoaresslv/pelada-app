@@ -82,10 +82,10 @@ export async function submitRating(formData: FormData): Promise<RatingResult> {
   if (ratedId === user.id)
     return { error: "Você não pode avaliar a si mesmo." };
 
-  let payload: Record<string, any> = {
-    rater_id: user.id,
-    rated_id: ratedId,
-  };
+let payload: Record<string, string | number> = {
+  rater_id: user.id,
+  rated_id: ratedId,
+};
 
   // Preenche apenas as 5 colunas relevantes para a posição, mantendo as outras nulas/ignoradas
   if (position === "GOL") {

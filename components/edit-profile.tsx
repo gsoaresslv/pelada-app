@@ -1,4 +1,3 @@
-// components/edit-profile.tsx
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
@@ -11,13 +10,14 @@ import { computeRatings, type Player, type Position } from "@/lib/teams";
 import { updateProfile } from "@/app/dashboard/perfil/actions";
 
 const POSITIONS: { value: Position; label: string }[] = [
-  { value: "ATA", label: "Ataque" },
+  { value: "ATA", label: "Atacante" },
   { value: "MEI", label: "Meio-campo" },
-  { value: "DEF", label: "Defesa" },
+  { value: "VOL", label: "Volante" },
+  { value: "ALA", label: "Ala" },
+  { value: "ZAG", label: "Zagueiro" },
   { value: "GOL", label: "Goleiro" },
 ];
 
-/** RF01: edita nickname/full_name/position com preview do Card FIFA em tempo real. */
 export function EditProfile({ player }: { player: Player }) {
   const [fullName, setFullName] = useState(player.full_name);
   const [nickname, setNickname] = useState(player.nickname);
@@ -28,14 +28,8 @@ export function EditProfile({ player }: { player: Player }) {
   } | null>(null);
   const [saving, startSave] = useTransition();
 
-  // Avatar propositalmente não editado aqui: PlayerCard já cai para iniciais quando avatar_url é null.
   const preview: Player = useMemo(() => {
-    const { rating_real, rating_display } = computeRatings(
-      player.avg_attack,
-      player.avg_defense,
-      player.avg_physical,
-      position,
-    );
+    const { rating_real, rating_display } = computeRatings(player, position);
     return {
       ...player,
       full_name: fullName,
@@ -66,7 +60,6 @@ export function EditProfile({ player }: { player: Player }) {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-5 px-4 pb-10 pt-4">
       <TopBar title="Meu perfil" />
-
       <PlayerCard player={preview} />
 
       {message && (

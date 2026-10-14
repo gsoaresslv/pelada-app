@@ -1,4 +1,3 @@
-// components/player-card.tsx
 import { cn } from "@/lib/utils";
 import type { Player } from "@/lib/teams";
 
@@ -23,31 +22,23 @@ const initials = (name: string) =>
 function StatBar({ label, value }: { label: string; value: number }) {
   const v = Math.min(10, Math.max(0, value));
   return (
-    <div
-      className="flex items-center gap-2"
-      role="meter"
-      aria-label={label}
-      aria-valuemin={0}
-      aria-valuemax={10}
-      aria-valuenow={Number(v.toFixed(1))}
-    >
-      <span className="w-6 text-[11px] font-medium text-muted-foreground">
+    <div className="flex items-center gap-2" role="meter" aria-label={label}>
+      <span className="w-6 text-[10px] font-medium text-muted-foreground">
         {label}
       </span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+      <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
         <div
           className="h-full rounded-full bg-primary transition-[width] duration-300"
           style={{ width: `${v * 10}%` }}
         />
       </div>
-      <span className="w-6 text-right text-[11px] tabular-nums text-muted-foreground">
+      <span className="w-5 text-right text-[10px] tabular-nums text-muted-foreground">
         {v.toFixed(1)}
       </span>
     </div>
   );
 }
 
-/** Card compacto estilo FIFA: rating_display em destaque + barras ATA/DEF/FIS (médias 0–10). */
 export function PlayerCard({
   player,
   className,
@@ -56,6 +47,25 @@ export function PlayerCard({
   className?: string;
 }) {
   const overall = Math.round(player.rating_display);
+
+  // Decide quais barrinhas desenhar baseado na posição
+  const stats =
+    player.position === "GOL"
+      ? [
+          { label: "POS", value: player.avg_pos },
+          { label: "ELA", value: player.avg_ela },
+          { label: "CLU", value: player.avg_clu },
+          { label: "MAN", value: player.avg_man },
+          { label: "AGI", value: player.avg_agi },
+        ]
+      : [
+          { label: "RIT", value: player.avg_rit },
+          { label: "FIN", value: player.avg_fin },
+          { label: "PAS", value: player.avg_pas },
+          { label: "DEF", value: player.avg_def },
+          { label: "FIS", value: player.avg_fis },
+        ];
+
   return (
     <div
       className={cn(
@@ -79,7 +89,6 @@ export function PlayerCard({
       </div>
 
       {player.avatar_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={player.avatar_url}
           alt=""
@@ -96,10 +105,10 @@ export function PlayerCard({
 
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{player.nickname}</p>
-        <div className="mt-1 space-y-0.5">
-          <StatBar label="ATA" value={player.avg_attack} />
-          <StatBar label="DEF" value={player.avg_defense} />
-          <StatBar label="FIS" value={player.avg_physical} />
+        <div className="mt-1 space-y-[3px]">
+          {stats.map((s) => (
+            <StatBar key={s.label} label={s.label} value={s.value} />
+          ))}
         </div>
       </div>
     </div>

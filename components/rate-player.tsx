@@ -14,7 +14,7 @@ import {
 } from "@/app/dashboard/avaliar/actions";
 
 type Group = { id: string; name: string };
-type Scores = { attack: number; defense: number; physical: number };
+type Scores = Record<string, number>;
 
 const fold = (s: string) =>
   s
@@ -22,26 +22,61 @@ const fold = (s: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
 
-const CRITERIA: { key: keyof Scores; label: string; hint: string }[] = [
-  { key: "attack", label: "Ataque", hint: "Finalização, passe, dribles" },
-  {
-    key: "defense",
-    label: "Defesa",
-    hint: "Desarme, posicionamento, marcação",
-  },
-  { key: "physical", label: "Físico", hint: "Velocidade, resistência, força" },
+const FIELD_CRITERIA = [
+  { key: "fin", label: "Finalização", hint: "Precisão de chute, faro de gol" },
+  { key: "pas", label: "Passe", hint: "Armação, visão de jogo, assistência" },
+  { key: "def", label: "Defesa", hint: "Desarme, marcação, posicionamento" },
+  { key: "rit", label: "Ritmo", hint: "Velocidade, arranque, agilidade" },
+  { key: "fis", label: "Físico", hint: "Resistência, força, jogo de corpo" },
 ];
 
-const BASE_SCORES: Scores = { attack: 5, defense: 5, physical: 5 };
+const GK_CRITERIA = [
+  {
+    key: "pos",
+    label: "Posicionamento",
+    hint: "Fechamento de ângulo, antecipação",
+  },
+  {
+    key: "ela",
+    label: "Elasticidade",
+    hint: "Reflexo, defesas difíceis à queima-roupa",
+  },
+  {
+    key: "clu",
+    label: "Clutching",
+    hint: "Defesas cirúrgicas em momentos cruciais",
+  },
+  {
+    key: "man",
+    label: "Manejo",
+    hint: "Saída de bola, reposição, jogo com os pés",
+  },
+  {
+    key: "agi",
+    label: "Agilidade",
+    hint: "Velocidade de recuperação após defesa",
+  },
+];
 
-/** RF03: dropdowns encadeados (pelada → jogador) + sliders 0–10 + salvar. */
+const BASE_SCORES: Scores = {
+  fin: 5,
+  pas: 5,
+  def: 5,
+  rit: 5,
+  fis: 5,
+  ela: 5,
+  pos: 5,
+  man: 5,
+  agi: 5,
+  clu: 5,
+};
+
 export function RatePlayer({ groups }: { groups: Group[] }) {
   const [groupId, setGroupId] = useState("");
   const [players, setPlayers] = useState<RateablePlayer[]>([]);
   const [query, setQuery] = useState("");
   const [ratedId, setRatedId] = useState("");
   const [scores, setScores] = useState<Scores>(BASE_SCORES);
-  const [lastRatedId, setLastRatedId] = useState("");
   const [message, setMessage] = useState<{
     type: "error" | "success";
     text: string;
@@ -63,7 +98,6 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
   function pickGroup(id: string) {
     setGroupId(id);
     setRatedId("");
-    setLastRatedId("");
     setQuery("");
     setMessage(null);
     setPlayers([]);
@@ -82,20 +116,28 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
 
   function pickPlayer(id: string) {
     setRatedId(id);
-    setScores(BASE_SCORES);
+    const player = players.find((p) => p.id === id);
+    // Se tiver nota anterior no banco, carrega para os sliders. Se não, volta pro base 5.0
+    if (player?.previous_rating) {
+      setScores({ ...BASE_SCORES, ...player.previous_rating });
+    } else {
+      setScores(BASE_SCORES);
+    }
     setMessage(null);
   }
 
   function save() {
-    if (!groupId || !ratedId) return;
+    if (!groupId || !ratedId || !ratedPlayer) return;
     const fd = new FormData();
     fd.set("group_id", groupId);
     fd.set("rated_id", ratedId);
-    fd.set("attack", String(scores.attack));
-    fd.set("defense", String(scores.defense));
-    fd.set("physical", String(scores.physical));
+    fd.set("position", ratedPlayer.position);
 
-    const nickname = ratedPlayer?.nickname;
+    // Anexa as notas do estado baseadas na posição atual
+    const activeCriteria =
+      ratedPlayer.position === "GOL" ? GK_CRITERIA : FIELD_CRITERIA;
+    activeCriteria.forEach((c) => fd.set(c.key, String(scores[c.key])));
+
     startSave(async () => {
       const result = await submitRating(fd);
       if (result?.error) {
@@ -104,13 +146,16 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
       }
       setMessage({
         type: "success",
-        text: `Avaliação de ${nickname} enviada!`,
+        text: `Avaliação de ${ratedPlayer.nickname} salva!`,
       });
-      setLastRatedId(ratedId);
-      // Fica na lista de propósito: o PRD permite reavaliar o mesmo jogador depois.
-      // Cada envio cria um novo registro imutável em "ratings" — não substitui o anterior.
+
+      // Atualiza a lista localmente para mostrar o badge imediatamente
+      setPlayers((prev) =>
+        prev.map((p) =>
+          p.id === ratedId ? { ...p, previous_rating: scores } : p,
+        ),
+      );
       setRatedId("");
-      setScores(BASE_SCORES);
     });
   }
 
@@ -150,14 +195,9 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
             </option>
           ))}
         </select>
-        {groups.length === 0 && (
-          <span className="text-xs text-muted-foreground">
-            Você ainda não participa de nenhuma pelada.
-          </span>
-        )}
       </label>
 
-      {/* Dropdown 2: Jogador — bloqueado até escolher a pelada */}
+      {/* Dropdown 2: Jogador */}
       <div className="flex flex-col gap-2">
         <span className="text-sm">Jogador a avaliar</span>
         <div className="relative">
@@ -197,8 +237,10 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
                 >
                   <span>{p.nickname}</span>
                   <span className="flex items-center gap-2 text-xs text-muted-foreground">
-                    {p.id === lastRatedId && p.id !== ratedId && (
-                      <span className="text-primary">Avaliado ✓</span>
+                    {p.previous_rating && (
+                      <span className="text-primary font-medium">
+                        Avaliado ✅
+                      </span>
                     )}
                     {p.position}
                   </span>
@@ -215,25 +257,33 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
           <p className="text-sm font-medium">
             Avaliando: {ratedPlayer.nickname}
           </p>
-          {CRITERIA.map(({ key, label, hint }) => (
-            <div key={key} className="flex flex-col gap-1">
-              <div className="flex items-baseline justify-between text-sm">
-                <span className="font-medium">{label}</span>
-                <span className="tabular-nums text-muted-foreground">
-                  {scores[key].toFixed(0)}
-                </span>
-              </div>
-              <Slider
-                min={0}
-                max={10}
-                step={1}
-                value={[scores[key]]}
-                onValueChange={([v]) => setScores((s) => ({ ...s, [key]: v }))}
-                aria-label={label}
-              />
-              <span className="text-xs text-muted-foreground">{hint}</span>
-            </div>
-          ))}
+          {(ratedPlayer.position === "GOL" ? GK_CRITERIA : FIELD_CRITERIA).map(
+            ({ key, label, hint }) => {
+              // Garante que o slider não quebre se o banco devolver null para a coluna específica
+              const val = scores[key] ?? 5;
+              return (
+                <div key={key} className="flex flex-col gap-1">
+                  <div className="flex items-baseline justify-between text-sm">
+                    <span className="font-medium">{label}</span>
+                    <span className="tabular-nums text-muted-foreground">
+                      {val.toFixed(0)}
+                    </span>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={10}
+                    step={1}
+                    value={[val]}
+                    onValueChange={([v]) =>
+                      setScores((s) => ({ ...s, [key]: v }))
+                    }
+                    aria-label={label}
+                  />
+                  <span className="text-xs text-muted-foreground">{hint}</span>
+                </div>
+              );
+            },
+          )}
         </div>
       )}
 

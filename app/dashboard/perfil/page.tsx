@@ -17,13 +17,20 @@ export default async function PerfilPage() {
 
   const player: Player = {
     ...row,
-    avg_attack: Number(row.avg_attack),
-    avg_defense: Number(row.avg_defense),
-    avg_physical: Number(row.avg_physical),
+    avg_fin: Number(row.avg_fin),
+    avg_pas: Number(row.avg_pas),
+    avg_def: Number(row.avg_def),
+    avg_rit: Number(row.avg_rit),
+    avg_fis: Number(row.avg_fis),
+    avg_ela: Number(row.avg_ela),
+    avg_pos: Number(row.avg_pos),
+    avg_man: Number(row.avg_man),
+    avg_agi: Number(row.avg_agi),
+    avg_clu: Number(row.avg_clu),
     ratings_count: Number(row.ratings_count),
     rating_real: Number(row.rating_real),
     rating_display: Number(row.rating_display),
-  }
+  };
 
   return <EditProfile player={player} />
 }

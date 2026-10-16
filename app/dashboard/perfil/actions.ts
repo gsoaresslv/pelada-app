@@ -1,9 +1,10 @@
+//dashboard/perfil/actions.ts
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import type { Position } from '@/lib/teams'
 
-const POSITIONS: Position[] = ['GOL', 'DEF', 'MEI', 'ATA']
+const POSITIONS: Position[] = ["GOL", "ZAG", "ALA", "VOL", "MEI", "ATA"];
 
 type Result = { error?: string; success?: true }
 

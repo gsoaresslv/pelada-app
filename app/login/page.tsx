@@ -1,20 +1,21 @@
-import Link from 'next/link'
-import { signIn } from './actions'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import Link from "next/link";
+import { signIn } from "./actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; registered?: string }>
+  searchParams: Promise<{ error?: string; registered?: string }>;
 }) {
-  const { error, registered } = await searchParams
+  const { error, registered } = await searchParams;
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center gap-4 p-6">
       <h1 className="text-xl font-semibold">Entrar</h1>
       {registered && !error && (
         <p role="status" className="text-sm text-muted-foreground">
-          Conta criada! Se a confirmação por e-mail estiver ativa, verifique sua caixa de entrada antes de entrar.
+          Conta criada! Se a confirmação por e-mail estiver ativa, verifique sua
+          caixa de entrada antes de entrar.
         </p>
       )}
       {error && (
@@ -27,18 +28,40 @@ export default async function LoginPage({
           E-mail
           <Input name="email" type="email" autoComplete="email" required />
         </label>
+
         <label className="flex flex-col gap-1 text-sm">
           Senha
-          <Input name="password" type="password" autoComplete="current-password" required />
+          <Input
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
         </label>
+
         <Button type="submit">Entrar</Button>
       </form>
-      <p className="text-center text-sm text-muted-foreground">
-        Ainda não tem conta?{' '}
-        <Link href="/cadastro" className="font-medium text-foreground underline underline-offset-4">
-          Cadastre-se
-        </Link>
-      </p>
+
+      <div className="flex flex-col items-center gap-3 mt-2">
+        <p className="text-center text-sm text-muted-foreground">
+          Ainda não tem conta?{" "}
+          <Link
+            href="/cadastro"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+          >
+            Cadastre-se
+          </Link>
+        </p>
+        <p className="text-center text-sm text-muted-foreground">
+          Esqueceu a senha?{" "}
+          <Link
+            href="/esqueci-senha"
+            className="font-medium text-foreground underline underline-offset-4 hover:text-primary"
+          >
+            Recuperar senha
+          </Link>
+        </p>
+      </div>
     </main>
-  )
+  );
 }

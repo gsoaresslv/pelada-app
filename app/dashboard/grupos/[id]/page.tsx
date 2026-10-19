@@ -25,6 +25,12 @@ type PlayerStatsRow = {
   rating_display: number | string;
 };
 
+const ROLE_WEIGHT: Record<string, number> = {
+  owner: 1,
+  admin: 2,
+  member: 3,
+};
+
 export default async function GroupDetailPage({
   params,
 }: {
@@ -95,9 +101,16 @@ export default async function GroupDetailPage({
         | "admin"
         | "member",
     }))
-    .sort((a, b) =>
-      a.player.nickname.localeCompare(b.player.nickname, "pt-BR"),
-    );
+    .sort((a, b) => {
+      const weightA = ROLE_WEIGHT[a.role] ?? 99; 
+      const weightB = ROLE_WEIGHT[b.role] ?? 99;
+
+      const roleDifference = weightA - weightB;
+      if (roleDifference !== 0) {
+        return roleDifference;
+      }
+      return a.player.nickname.localeCompare(b.player.nickname, "pt-BR");
+    });
 
   const isAdmin = myRole === "owner" || myRole === "admin";
 

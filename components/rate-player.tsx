@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react"; // <-- X adicionado aqui
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,8 +26,8 @@ const FIELD_CRITERIA = [
   { key: "fin", label: "Finalização", hint: "Precisão de chute, faro de gol" },
   { key: "pas", label: "Passe", hint: "Armação, visão de jogo, assistência" },
   { key: "def", label: "Defesa", hint: "Desarme, marcação, posicionamento" },
-  { key: "rit", label: "Ritmo", hint: "Fôlego, arranque, corrida" },
-  { key: "fis", label: "Físico", hint: "Proteção de bola, força, jogo de corpo" },
+  { key: "rit", label: "Ritmo", hint: "Velocidade, arranque, agilidade" },
+  { key: "fis", label: "Físico", hint: "Resistência, força, jogo de corpo" },
 ];
 
 const GK_CRITERIA = [
@@ -125,6 +125,11 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
     setMessage(null);
   }
 
+  // Função para fechar o Modal apagando o ID selecionado
+  function closeModal() {
+    setRatedId("");
+  }
+
   function save() {
     if (!groupId || !ratedId || !ratedPlayer) return;
     const fd = new FormData();
@@ -152,12 +157,15 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
           p.id === ratedId ? { ...p, previous_rating: scores } : p,
         ),
       );
-      setRatedId("");
+
+      // Fecha o modal automaticamente ao terminar de salvar
+      closeModal();
     });
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-5 px-4 pb-28 pt-4">
+    // Removi o padding bottom exagerado que reservava espaço para o botão antigo
+    <div className="mx-auto flex w-full max-w-md flex-col gap-5 px-4 pb-10 pt-4 relative">
       <TopBar
         title="Avaliar jogador"
         subtitle="As notas ajudam a equilibrar os times."
@@ -248,52 +256,72 @@ export function RatePlayer({ groups }: { groups: Group[] }) {
         )}
       </div>
 
-      {/* Sliders 0–10 */}
-      {ratedPlayer && (
-        <div className="flex flex-col gap-5 rounded-xl border bg-card p-4">
-          <p className="text-sm font-medium">
-            Avaliando: {ratedPlayer.nickname}
-          </p>
-          {(ratedPlayer.position === "GOL" ? GK_CRITERIA : FIELD_CRITERIA).map(
-            ({ key, label, hint }) => {
-              const val = scores[key] ?? 5;
-              return (
-                <div key={key} className="flex flex-col gap-1">
-                  <div className="flex items-baseline justify-between text-sm">
-                    <span className="font-medium">{label}</span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {val.toFixed(0)}
+      {/* MODAL (Renderizado apenas se um jogador estiver selecionado) */}
+      {ratedId && ratedPlayer && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in zoom-in-95 duration-200">
+          <div className="flex w-full max-w-md flex-col overflow-hidden rounded-2xl border bg-card shadow-xl">
+            {/* Cabeçalho do Modal */}
+            <div className="flex items-center justify-between border-b px-5 py-4">
+              <h3 className="font-semibold text-lg tracking-tight">
+                Avaliando: {ratedPlayer.nickname}
+              </h3>
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Corpo do Modal (Sliders com Scroll interno caso fique muito grande na vertical) */}
+            <div className="flex flex-col gap-6 overflow-y-auto p-5 max-h-[60dvh]">
+              {(ratedPlayer.position === "GOL"
+                ? GK_CRITERIA
+                : FIELD_CRITERIA
+              ).map(({ key, label, hint }) => {
+                const val = scores[key] ?? 5;
+                return (
+                  <div key={key} className="flex flex-col gap-1.5">
+                    <div className="flex items-baseline justify-between text-sm">
+                      <span className="font-medium text-base">{label}</span>
+                      <span className="tabular-nums text-muted-foreground font-semibold">
+                        {val.toFixed(0)}
+                      </span>
+                    </div>
+                    <Slider
+                      min={0}
+                      max={10}
+                      step={1}
+                      value={[val]}
+                      onValueChange={([v]) =>
+                        setScores((s) => ({ ...s, [key]: v }))
+                      }
+                      aria-label={label}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      {hint}
                     </span>
                   </div>
-                  <Slider
-                    min={0}
-                    max={10}
-                    step={1}
-                    value={[val]}
-                    onValueChange={([v]) =>
-                      setScores((s) => ({ ...s, [key]: v }))
-                    }
-                    aria-label={label}
-                  />
-                  <span className="text-xs text-muted-foreground">{hint}</span>
-                </div>
-              );
-            },
-          )}
+                );
+              })}
+            </div>
+
+            {/* Rodapé do Modal com Botão de Enviar */}
+            <div className="border-t bg-muted/30 p-5">
+              <Button
+                size="lg"
+                className="w-full text-md font-semibold"
+                disabled={saving}
+                onClick={save}
+              >
+                {saving ? "Salvando…" : "Enviar avaliação"}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
-
-      <div className="fixed inset-x-0 bottom-0 border-t bg-background p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-        <div className="mx-auto max-w-md">
-          <Button
-            className="w-full"
-            disabled={!ratedId || saving}
-            onClick={save}
-          >
-            {saving ? "Salvando…" : "Salvar avaliação"}
-          </Button>
-        </div>
-      </div>
     </div>
   );
 }
